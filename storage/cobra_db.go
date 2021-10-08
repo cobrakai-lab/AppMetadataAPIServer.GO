@@ -3,39 +3,52 @@ package storage
 import (
 	. "AppMetadataAPIServerGo/model"
 	"errors"
-	"fmt"
+	"log"
 )
 
-func CreateKey(appMetadata AppMetadata) AppMetadataKey {
+type Database interface{
+	CreateKey(metadata AppMetadata) AppMetadataKey
+	Create(metadata AppMetadata) error
+	GetBulk(keys []AppMetadataKey) []AppMetadata
+	Init()
+}
+
+type CobraDB struct {
+	dataCore      map[AppMetadataKey]AppMetadata
+}
+
+func (cobraDb *CobraDB) Init(){
+	cobraDb.dataCore = make(map[AppMetadataKey]AppMetadata)
+	log.Println("CobraDB is initialized.")
+}
+
+func (cobraDb *CobraDB) CreateKey(appMetadata AppMetadata) AppMetadataKey {
 	return AppMetadataKey{
 		Title:   appMetadata.Title,
 		Version: appMetadata.Version,
 	}
 }
 
-func Create(metadata AppMetadata) error{
-	key:= CreateKey(metadata)
-	if _, found :=dataCore[key]; found {
+func (cobraDb *CobraDB) Create(metadata AppMetadata) error{
+	key:= cobraDb.CreateKey(metadata)
+	if _, found := cobraDb.dataCore[key]; found {
 		return errors.New("duplicate record exists")
 	}else{
-		dataCore[key] = metadata
+		cobraDb.dataCore[key] = metadata
+		//todo add to inverted index
 	}
 	return nil
 }
 
-func GetBulk(keys []AppMetadataKey) []AppMetadata {
-	var result []AppMetadata = []AppMetadata{}
+func (cobraDb *CobraDB) GetBulk(keys []AppMetadataKey) []AppMetadata {
+	var result = []AppMetadata{}
 	for _, key := range keys{
-		if data, found :=dataCore[key]; found {
-			fmt.Printf("data: %s", data.Title)
+		if data, found := cobraDb.dataCore[key]; found {
 			result = append(result, data)
 		}
 	}
-	fmt.Printf("Result: %s", result)
 	return result
 }
-
-var dataCore = make(map[AppMetadataKey]AppMetadata)
 
 type AppMetadataKey struct {
 	Title   string
