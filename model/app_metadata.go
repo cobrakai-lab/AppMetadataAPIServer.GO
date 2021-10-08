@@ -1,4 +1,4 @@
-package Model
+package model
 
 type AppMetadata struct {
 	Title       string       `json:"title"`

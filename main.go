@@ -1,9 +1,9 @@
 package main
 
 import (
-	. "AppMetadataAPIServerGo/Model"
-	"AppMetadataAPIServerGo/Storage"
-	"AppMetadataAPIServerGo/Validator"
+	. "AppMetadataAPIServerGo/model"
+	"AppMetadataAPIServerGo/storage"
+	"AppMetadataAPIServerGo/validator"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -35,11 +35,11 @@ func getMetadata(c *gin.Context) {
 	title := c.Query("title")
 	version := c.Query("version")
 	log.Printf("title: %s, version: %s", title, version)
-	key := Storage.AppMetadataKey{
+	key := storage.AppMetadataKey{
 		title,
 	version,
 	}
-	c.IndentedJSON(http.StatusOK, Storage.GetBulk([]Storage.AppMetadataKey{key}))
+	c.IndentedJSON(http.StatusOK, storage.GetBulk([]storage.AppMetadataKey{key}))
 }
 func postMetadata(c *gin.Context) {
 	var newMetadata AppMetadata
@@ -49,12 +49,12 @@ func postMetadata(c *gin.Context) {
 		c.JSON(http.StatusBadRequest,gin.H{"error":"Bad format"})
 		return
 	}
-	if err:=Validator.Validate(newMetadata); err!=nil {
+	if err:= validator.Validate(newMetadata); err!=nil {
 		log.Printf("Provide metadata is not valid. %s", err)
 		c.IndentedJSON(http.StatusBadRequest,gin.H{"error":fmt.Sprintf("%s", err)})
 		return
 	}
-	if err:= Storage.Create(newMetadata); err!=nil{
+	if err:= storage.Create(newMetadata); err!=nil{
 		log.Printf("Error when writing to database: %s", err)
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s", err)})
 		return

@@ -1,7 +1,7 @@
-package Validator
+package validator
 
 import (
-	. "AppMetadataAPIServerGo/Model"
+	. "AppMetadataAPIServerGo/model"
 	"errors"
 	"strings"
 )

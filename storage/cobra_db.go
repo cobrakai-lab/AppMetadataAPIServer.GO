@@ -1,7 +1,7 @@
-package Storage
+package storage
 
 import (
-	. "AppMetadataAPIServerGo/Model"
+	. "AppMetadataAPIServerGo/model"
 	"errors"
 	"fmt"
 )
