@@ -15,10 +15,14 @@ type Database interface{
 
 type CobraDB struct {
 	dataCore      map[AppMetadataKey]AppMetadata
+	cobraSearch   cobraSearch
 }
 
 func (cobraDb *CobraDB) Init(){
 	cobraDb.dataCore = make(map[AppMetadataKey]AppMetadata)
+	//cobraDb.cobraSearch =NewCobraSearch()
+	cobraDb.cobraSearch = cobraSearch{}
+	cobraDb.cobraSearch.initInvertedIndex()
 	log.Println("CobraDB is initialized.")
 }
 
@@ -35,7 +39,7 @@ func (cobraDb *CobraDB) Create(metadata AppMetadata) error{
 		return errors.New("duplicate record exists")
 	}else{
 		cobraDb.dataCore[key] = metadata
-		//todo add to inverted index
+		cobraDb.cobraSearch.IndexMetadata(metadata)
 	}
 	return nil
 }
