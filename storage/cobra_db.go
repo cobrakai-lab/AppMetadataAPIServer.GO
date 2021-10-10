@@ -10,6 +10,7 @@ type Database interface{
 	CreateKey(metadata AppMetadata) AppMetadataKey
 	Create(metadata AppMetadata) error
 	GetBulk(keys []AppMetadataKey) []AppMetadata
+	Query(parameter QueryParameter) []AppMetadata
 	Init()
 }
 
@@ -51,6 +52,11 @@ func (cobraDb *CobraDB) GetBulk(keys []AppMetadataKey) []AppMetadata {
 		}
 	}
 	return result
+}
+
+func (cobraDb *CobraDB) Query(parameter QueryParameter) []AppMetadata{
+	var keys = cobraDb.cobraSearch.QueryMetadata(parameter)
+	return cobraDb.GetBulk(keys)
 }
 
 type AppMetadataKey struct {

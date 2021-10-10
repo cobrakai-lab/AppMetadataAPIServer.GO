@@ -19,7 +19,7 @@ func main() {
 	log.Println("Starting server")
 	cobraDB.Init()
 	router := gin.Default()
-	router.GET(MetadataEndpoint, getMetadata)
+	router.GET(MetadataEndpoint, queryMetadata)
 	router.POST(MetadataEndpoint, postMetadata)
 	router.GET(MetadataEndpoint+"/:title/:version", getMetadataByTitleVersion)
 	router.Run("localhost:" + Port)
@@ -37,13 +37,19 @@ func getMetadataByTitleVersion(c *gin.Context) {
 	}
 }
 
-func getMetadata(c *gin.Context) {
-	//todo implement generic query
-	title := c.Query("title")
-	version := c.Query("version")
-	key := storage.AppMetadataKey{title, version}
-
-	c.IndentedJSON(http.StatusOK, cobraDB.GetBulk([]storage.AppMetadataKey{key}))
+func queryMetadata(c *gin.Context) {
+	parameters:=storage.QueryParameter{
+		Title:           c.Query("title"),
+		Version:         c.Query("version"),
+		MaintainerName:  c.Query("maintainerName"),
+		MaintainerEmail: c.Query("maintainerEmail"),
+		Company:         c.Query("company"),
+		Website:         c.Query("website"),
+		Source:          c.Query("source"),
+		License:         c.Query("license"),
+	}
+	result:=cobraDB.Query(parameters)
+	c.IndentedJSON(http.StatusOK, result)
 }
 func postMetadata(c *gin.Context) {
 	var newMetadata AppMetadata

@@ -50,9 +50,9 @@ func indexProperty(cobraSearch *cobraSearch, appMetadata AppMetadata, propertyNa
 	log.Printf("Indexing %s = %s for app metadata title: %s, version: %s\n", propertyName, propertyValue, appMetadata.Title, appMetadata.Version)
 	var propertyIndex = cobraSearch.invertedIndex[propertyName]
 	var key = AppMetadataKey{appMetadata.Title, appMetadata.Version}
-	subIndex,found := propertyIndex[propertyValue]
+	_,found := propertyIndex[propertyValue]
 	if found{
-		subIndex = append(subIndex, key)
+		propertyIndex[propertyValue] = append(propertyIndex[propertyValue], key)
 	}else{
 		propertyIndex[propertyValue] = []AppMetadataKey{key}
 	}
