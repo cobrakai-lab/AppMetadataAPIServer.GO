@@ -20,7 +20,6 @@ type CobraDB struct {
 
 func (cobraDb *CobraDB) Init(){
 	cobraDb.dataCore = make(map[AppMetadataKey]AppMetadata)
-	//cobraDb.cobraSearch =NewCobraSearch()
 	cobraDb.cobraSearch = cobraSearch{}
 	cobraDb.cobraSearch.initInvertedIndex()
 	log.Println("CobraDB is initialized.")
