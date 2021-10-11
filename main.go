@@ -30,6 +30,7 @@ func initServer() *gin.Engine{
 }
 
 func getMetadataByTitleVersion(c *gin.Context) {
+	defer recovery(c)
 	title := c.Param("title")
 	version := c.Param("version")
 	var key = storage.AppMetadataKey{title, version}
@@ -42,6 +43,7 @@ func getMetadataByTitleVersion(c *gin.Context) {
 }
 
 func queryMetadata(c *gin.Context) {
+	defer recovery(c)
 	parameters:=storage.QueryParameter{
 		Title:           c.Query("title"),
 		Version:         c.Query("version"),
@@ -54,8 +56,11 @@ func queryMetadata(c *gin.Context) {
 	}
 	result:=cobraDB.Query(parameters)
 	c.IndentedJSON(http.StatusOK, result)
+
+
 }
 func postMetadata(c *gin.Context) {
+	defer recovery(c)
 	var newMetadata AppMetadata
 	if err := c.BindYAML(&newMetadata); err != nil {
 		log.Printf("Something wrong with YAML format: %s", err)
@@ -74,4 +79,11 @@ func postMetadata(c *gin.Context) {
 	}
 	log.Printf("New metadata created successfully")
 	c.IndentedJSON(http.StatusCreated, newMetadata)
+}
+
+func recovery(c *gin.Context){
+	if err:=recover();err!=nil{
+		log.Printf("Runtime error: %s", err)
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error":"Something wrong, please try again later."})
+	}
 }
