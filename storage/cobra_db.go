@@ -55,6 +55,7 @@ func (cobraDb *CobraDB) GetBulk(keys []AppMetadataKey) []AppMetadata {
 }
 
 func (cobraDb *CobraDB) Query(parameter QueryParameter) []AppMetadata{
+	log.Printf("Querying with parameter: %+v", parameter)
 	var keys = cobraDb.cobraSearch.QueryMetadata(parameter)
 	return cobraDb.GetBulk(keys)
 }

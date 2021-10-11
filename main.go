@@ -17,12 +17,16 @@ var cobraDB storage.Database = new(storage.CobraDB)
 
 func main() {
 	log.Println("Starting server")
+	initServer().Run("localhost:" + Port)
+}
+
+func initServer() *gin.Engine{
 	cobraDB.Init()
 	router := gin.Default()
 	router.GET(MetadataEndpoint, queryMetadata)
 	router.POST(MetadataEndpoint, postMetadata)
 	router.GET(MetadataEndpoint+"/:title/:version", getMetadataByTitleVersion)
-	router.Run("localhost:" + Port)
+	return router
 }
 
 func getMetadataByTitleVersion(c *gin.Context) {
@@ -54,12 +58,12 @@ func queryMetadata(c *gin.Context) {
 func postMetadata(c *gin.Context) {
 	var newMetadata AppMetadata
 	if err := c.BindYAML(&newMetadata); err != nil {
-		log.Printf("Something wrong with binding YAML: %s", err)
+		log.Printf("Something wrong with YAML format: %s", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad format"})
 		return
 	}
 	if err := validator.Validate(newMetadata); err != nil {
-		log.Printf("Provide metadata is not valid. %s", err)
+		log.Printf("Provided metadata is not valid. %s", err)
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s", err)})
 		return
 	}
