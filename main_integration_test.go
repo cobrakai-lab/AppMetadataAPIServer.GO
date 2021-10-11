@@ -100,6 +100,14 @@ func testGetByTitleVersionAPI(t *testing.T, endpoint string) {
 			t.Errorf("expected metatdata not equal returned metadata. Expected: %+v, returned: %+v", expectedAppMetadata, returnedAppMetadata)
 		}
 	}
+
+	res,err:=http.Get(endpoint+"/not/there/")
+	if err!=nil{
+		t.Fatalf("Something wrong with integration test: %s", err)
+	}
+	if res.StatusCode!=404{
+		t.Errorf("Expected status code = 404, actual: %d", res.StatusCode)
+	}
 }
 
 func testPostInvalidData(t *testing.T, invalidPayloads []string, endpoint string) {
