@@ -49,6 +49,7 @@ func (cobraSearch *cobraSearch) initInvertedIndex(){
 func indexProperty(cobraSearch *cobraSearch, appMetadata AppMetadata, propertyName string , propertyValue string ){
 	log.Printf("Indexing %s = %s for app metadata title: %s, version: %s\n", propertyName, propertyValue, appMetadata.Title, appMetadata.Version)
 	var propertyIndex = cobraSearch.invertedIndex[propertyName]
+	propertyValue = strings.TrimSpace(propertyValue)
 	var key = AppMetadataKey{appMetadata.Title, appMetadata.Version}
 	_,found := propertyIndex[propertyValue]
 	if found{
@@ -72,6 +73,9 @@ func (cobraSearch *cobraSearch) getAppMetadataKeysByQuery(queryParam QueryParame
 func (cobraSearch *cobraSearch) getAppMetadataByProperty(queryParam QueryParameter, propertyName string) []AppMetadataKey{
 	if queriedValue :=  getQueriedValue(queryParam, propertyName); queriedValue !=""{
 		keysQueried := cobraSearch.invertedIndex[propertyName][queriedValue]
+		if keysQueried==nil{
+			keysQueried = []AppMetadataKey{}
+		}
 		return keysQueried
 	}else {
 		return nil
