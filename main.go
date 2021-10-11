@@ -17,7 +17,7 @@ var cobraDB storage.Database = new(storage.CobraDB)
 
 func main() {
 	log.Println("Starting server")
-	initServer().Run("localhost:" + Port)
+	initServer().Run("0.0.0.0:" + Port)
 }
 
 func initServer() *gin.Engine{
