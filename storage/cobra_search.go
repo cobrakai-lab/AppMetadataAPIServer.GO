@@ -9,13 +9,14 @@ import (
 type SearchEngine interface {
 	IndexMetadata(appMetadata AppMetadata)
 	QueryMetadata(queryParam QueryParameter) []AppMetadataKey
+	Init()
 }
 
-type cobraSearch struct{
+type CobraSearch struct{
 	invertedIndex map[string]map[string][]AppMetadataKey
 }
 
-func (cobraSearch *cobraSearch) IndexMetadata(appMetadata AppMetadata){
+func (cobraSearch *CobraSearch) IndexMetadata(appMetadata AppMetadata){
 	indexProperty(cobraSearch, appMetadata, "title", appMetadata.Title)
 	indexProperty(cobraSearch, appMetadata, "version", appMetadata.Version)
 	for _, maintainer:= range appMetadata.Maintainers{
@@ -28,13 +29,13 @@ func (cobraSearch *cobraSearch) IndexMetadata(appMetadata AppMetadata){
 	indexProperty(cobraSearch, appMetadata, "license", appMetadata.License)
 }
 
-func (cobraSearch *cobraSearch) QueryMetadata(queryParam QueryParameter) []AppMetadataKey{
+func (cobraSearch *CobraSearch) QueryMetadata(queryParam QueryParameter) []AppMetadataKey{
 	return cobraSearch.getAppMetadataKeysByQuery(queryParam)
 }
 
 var parameterNames = []string{ "title", "version", "maintainerName", "maintainerEmail","company", "website", "source", "license"}
 
-func (cobraSearch *cobraSearch) initInvertedIndex(){
+func (cobraSearch *CobraSearch) Init(){
 	if cobraSearch.invertedIndex==nil{
 		cobraSearch.invertedIndex = make(map[string]map[string][]AppMetadataKey)
 		for _, parameterName:= range parameterNames{
@@ -46,7 +47,7 @@ func (cobraSearch *cobraSearch) initInvertedIndex(){
 	}
 }
 
-func indexProperty(cobraSearch *cobraSearch, appMetadata AppMetadata, propertyName string , propertyValue string ){
+func indexProperty(cobraSearch *CobraSearch, appMetadata AppMetadata, propertyName string , propertyValue string ){
 	log.Printf("Indexing %s = %s for app metadata title: %s, version: %s\n", propertyName, propertyValue, appMetadata.Title, appMetadata.Version)
 	var propertyIndex = cobraSearch.invertedIndex[propertyName]
 	propertyValue = strings.TrimSpace(propertyValue)
@@ -59,7 +60,7 @@ func indexProperty(cobraSearch *cobraSearch, appMetadata AppMetadata, propertyNa
 	}
 }
 
-func (cobraSearch *cobraSearch) getAppMetadataKeysByQuery(queryParam QueryParameter) []AppMetadataKey{
+func (cobraSearch *CobraSearch) getAppMetadataKeysByQuery(queryParam QueryParameter) []AppMetadataKey{
 	keysQueriedFromParameters := [][]AppMetadataKey{}
 	for _,parameterName := range parameterNames{
 		queriedKeys := cobraSearch.getAppMetadataByProperty(queryParam, parameterName)
@@ -70,7 +71,7 @@ func (cobraSearch *cobraSearch) getAppMetadataKeysByQuery(queryParam QueryParame
 	return IntersectAll(keysQueriedFromParameters)
 }
 
-func (cobraSearch *cobraSearch) getAppMetadataByProperty(queryParam QueryParameter, propertyName string) []AppMetadataKey{
+func (cobraSearch *CobraSearch) getAppMetadataByProperty(queryParam QueryParameter, propertyName string) []AppMetadataKey{
 	if queriedValue :=  getQueriedValue(queryParam, propertyName); queriedValue !=""{
 		keysQueried := cobraSearch.invertedIndex[propertyName][queriedValue]
 		if keysQueried==nil{

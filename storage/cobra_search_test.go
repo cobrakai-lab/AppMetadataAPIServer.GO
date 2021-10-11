@@ -7,8 +7,8 @@ import (
 )
 
 func TestCobraSearch_SimpleCase(t *testing.T) {
-	var cobraSearch = cobraSearch{}
-	cobraSearch.initInvertedIndex()
+	var cobraSearch = CobraSearch{}
+	cobraSearch.Init()
 
 	input:= getTestInputs()[0]
 	cobraSearch.IndexMetadata(input)
@@ -19,16 +19,16 @@ func TestCobraSearch_SimpleCase(t *testing.T) {
 }
 
 func TestCobraSearch_EmptyContent(t *testing.T) {
-	var cobraSearch = cobraSearch{}
-	cobraSearch.initInvertedIndex()
+	var cobraSearch = CobraSearch{}
+	cobraSearch.Init()
 	actual := cobraSearch.QueryMetadata(QueryParameter{License: "mit"})
 	assert.Equal(t, len(actual), 0)
 }
 
 func TestCobraSearch_MultipleMatch(t *testing.T){
 
-	var cobraSearch = cobraSearch{}
-	cobraSearch.initInvertedIndex()
+	var cobraSearch = CobraSearch{}
+	cobraSearch.Init()
 	testInputs := getTestInputs()
 	for _, input:= range testInputs{
 		cobraSearch.IndexMetadata(input)

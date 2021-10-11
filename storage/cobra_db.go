@@ -7,7 +7,6 @@ import (
 )
 
 type Database interface{
-	CreateKey(metadata AppMetadata) AppMetadataKey
 	Create(metadata AppMetadata) error
 	GetBulk(keys []AppMetadataKey) []AppMetadata
 	Query(parameter QueryParameter) []AppMetadata
@@ -15,26 +14,18 @@ type Database interface{
 }
 
 type CobraDB struct {
-	dataCore      map[AppMetadataKey]AppMetadata
-	cobraSearch   cobraSearch
+	dataCore    map[AppMetadataKey]AppMetadata
+	cobraSearch SearchEngine
 }
 
-func (cobraDb *CobraDB) Init(){
+func (cobraDb *CobraDB) Init(cobraSearch *SearchEngine){
 	cobraDb.dataCore = make(map[AppMetadataKey]AppMetadata)
-	cobraDb.cobraSearch = cobraSearch{}
-	cobraDb.cobraSearch.initInvertedIndex()
+	cobraDb.cobraSearch = *cobraSearch
 	log.Println("CobraDB is initialized.")
 }
 
-func (cobraDb *CobraDB) CreateKey(appMetadata AppMetadata) AppMetadataKey {
-	return AppMetadataKey{
-		Title:   appMetadata.Title,
-		Version: appMetadata.Version,
-	}
-}
-
 func (cobraDb *CobraDB) Create(metadata AppMetadata) error{
-	key:= cobraDb.CreateKey(metadata)
+	key:= AppMetadataKey{ metadata.Title, metadata.Version}
 	if _, found := cobraDb.dataCore[key]; found {
 		return errors.New("duplicate record exists")
 	}else{

@@ -13,7 +13,7 @@ import (
 const MetadataEndpoint = "v1/metadata"
 const Port = "8888"
 
-var cobraDB storage.Database = new(storage.CobraDB)
+var cobraDB = storage.CobraDB{}
 
 func main() {
 	log.Println("Starting server")
@@ -21,7 +21,9 @@ func main() {
 }
 
 func initServer() *gin.Engine{
-	cobraDB.Init()
+	var cobraSearch storage.SearchEngine = new(storage.CobraSearch)
+	cobraSearch.Init()
+	cobraDB.Init(&cobraSearch)
 	router := gin.Default()
 	router.GET(MetadataEndpoint, queryMetadata)
 	router.POST(MetadataEndpoint, postMetadata)
@@ -56,9 +58,8 @@ func queryMetadata(c *gin.Context) {
 	}
 	result:=cobraDB.Query(parameters)
 	c.IndentedJSON(http.StatusOK, result)
-
-
 }
+
 func postMetadata(c *gin.Context) {
 	defer recovery(c)
 	var newMetadata AppMetadata
