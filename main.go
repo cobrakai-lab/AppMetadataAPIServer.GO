@@ -28,6 +28,7 @@ func initServer() *gin.Engine{
 	router.GET(MetadataEndpoint, queryMetadata)
 	router.POST(MetadataEndpoint, postMetadata)
 	router.GET(MetadataEndpoint+"/:title/:version", getMetadataByTitleVersion)
+	preloadMockData()
 	return router
 }
 
@@ -87,4 +88,22 @@ func recovery(c *gin.Context){
 		log.Printf("Runtime error: %s", err)
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error":"Something wrong, please try again later."})
 	}
+}
+
+
+func preloadMockData(){
+	mockData := AppMetadata{
+		Title:       "mock app",
+		Version:     "1.0",
+		Maintainers: []Maintainer{
+			{ "kai", "i@g.com"},
+		},
+		Company:     "Cobrakai",
+		Website:     "www.somewhere.com",
+		Source:      "http://github.com",
+		License:     "MIT",
+		Description: "Looks legit!",
+	}
+
+	cobraDB.Create(mockData)
 }

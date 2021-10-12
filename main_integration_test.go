@@ -1,7 +1,7 @@
 package main
 
 import (
-	"AppMetadataAPIServerGo/model"
+	. "AppMetadataAPIServerGo/model"
 	"encoding/json"
 	"fmt"
 	"gopkg.in/yaml.v2"
@@ -44,7 +44,7 @@ func testQueryAPI(t *testing.T, endpoint string) {
 		"title=Valid+App+1",
 	}
 
-	expectedResults := [][]model.AppMetadata{
+	expectedResults := [][]AppMetadata{
 		allAppMetadatas,
 		{},
 		{allAppMetadatas[1], allAppMetadatas[2]},
@@ -63,7 +63,7 @@ func testQueryAPI(t *testing.T, endpoint string) {
 			t.Errorf("Failed to get response from %s. Expected status code = 200, actual: %d", endpoint+query, res.StatusCode)
 		}
 		responseContent, _ := io.ReadAll(res.Body)
-		actual:= []model.AppMetadata{}
+		actual:= []AppMetadata{}
 		json.Unmarshal(responseContent, &actual)
 
 		expected := expectedResults[i]
@@ -91,7 +91,7 @@ func testGetByTitleVersionAPI(t *testing.T, endpoint string) {
 			t.Errorf("Failed to get response from %s. Expected status code = 200, actual: %d", query, res.StatusCode)
 		}
 		responseContent, _ := io.ReadAll(res.Body)
-		returnedAppMetadata := model.AppMetadata{}
+		returnedAppMetadata := AppMetadata{}
 		json.Unmarshal(responseContent, &returnedAppMetadata)
 
 		expectedAppMetadata := allAppMetadatas[i]
@@ -162,10 +162,10 @@ func getPayloadsFromFile(directory string) []string{
 	return payloads
 }
 
-func getAppMetadataFromPayloads(payloads []string) []model.AppMetadata{
-	var appMetadatas []model.AppMetadata
+func getAppMetadataFromPayloads(payloads []string) []AppMetadata{
+	var appMetadatas []AppMetadata
 	for _, payload := range payloads{
-		parsed := model.AppMetadata{}
+		parsed := AppMetadata{}
 		yaml.Unmarshal([]byte(payload), &parsed)
 		appMetadatas = append(appMetadatas, parsed)
 	}
