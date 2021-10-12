@@ -17,6 +17,12 @@ func TestCobraSearch_SimpleCase(t *testing.T) {
 
 	assert.Equal(t, len(actual), 1)
 	assert.Equal(t, actual[0], AppMetadataKey{input.Title, input.Version})
+
+	cobraSearch.Delete(AppMetadataKey{input.Title, input.Version})
+	actual = cobraSearch.QueryMetadata(QueryParameter{License: "mit"})
+
+	assert.Equal(t, len(actual), 0)
+
 }
 
 func TestCobraSearch_EmptyContent(t *testing.T) {
@@ -52,6 +58,17 @@ func TestCobraSearch_MultipleMatch(t *testing.T){
 
 	actual = cobraSearch.QueryMetadata(QueryParameter{Company: "cobrakai", License: "bsd"})
 	assert.Equal(t,len(actual), 0)
+
+	//test delete
+	cobraSearch.Delete(AppMetadataKey{testInputs[0].Title, testInputs[0].Version})
+	actual = cobraSearch.QueryMetadata(QueryParameter{Company: "cobrakai"})
+	assert.Equal(t, len(actual), 1)
+	expected= []AppMetadataKey{
+		{testInputs[1].Title, testInputs[1].Version},
+	}
+	assert.ElementsMatch(t, actual, expected)
+
+
 }
 
 func getTestInputs() []AppMetadata {

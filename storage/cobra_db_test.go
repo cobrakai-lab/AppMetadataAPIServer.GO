@@ -30,7 +30,7 @@ func TestCobraDB(t *testing.T) {
 		{inputs[1].Title, inputs[1].Version},
 	})
 
-	assert.Equal(t, actual, inputs)
+	assert.ElementsMatch(t, actual, inputs)
 	mockCobraSearch.AssertExpectations(t)
 
 	//test Query
@@ -42,6 +42,19 @@ func TestCobraDB(t *testing.T) {
 
 	actual = cobraDB.Query(queryParam)
 	assert.Equal(t, actual, []AppMetadata{inputs[0]})
+	mockCobraSearch.AssertExpectations(t)
+
+	//test delete
+	keyToDelete:=AppMetadataKey{inputs[0].Title, inputs[0].Version}
+	mockCobraSearch.On("Delete", keyToDelete)
+
+	cobraDB.Delete(keyToDelete)
+
+	actual = cobraDB.GetBulk([]AppMetadataKey{
+		{inputs[0].Title, inputs[0].Version},
+		{inputs[1].Title, inputs[1].Version},
+	})
+	assert.ElementsMatch(t, actual, []AppMetadata{inputs[1]})
 	mockCobraSearch.AssertExpectations(t)
 }
 
@@ -114,6 +127,10 @@ func (m *MockSearchEngine) IndexMetadata(metadata AppMetadata) {
 func (m *MockSearchEngine) QueryMetadata(queryParams QueryParameter) []AppMetadataKey {
 	args := m.Called(queryParams)
 	return args.Get(0).([]AppMetadataKey)
+}
+
+func (m *MockSearchEngine) Delete(key AppMetadataKey){
+	m.Called(key)
 }
 
 func (m *MockSearchEngine) Init() {

@@ -32,6 +32,7 @@ func TestIntegration(t *testing.T){
 	testPostInvalidData(t, invalidPayloads, endpoint)
 	testGetByTitleVersionAPI(t, endpoint)
 	testQueryAPI(t,endpoint)
+	testDeleteAPI(t, validPayloads, endpoint)
 }
 
 func testQueryAPI(t *testing.T, endpoint string) {
@@ -55,21 +56,18 @@ func testQueryAPI(t *testing.T, endpoint string) {
 	}
 
 	for i,query :=range queries{
-		res,err:=http.Get(endpoint+"?"+query)
-		if err!=nil{
-			t.Fatalf("Something wrong with integration test: %s", err)
-		}
-		if res.StatusCode!=200{
-			t.Errorf("Failed to get response from %s. Expected status code = 200, actual: %d", endpoint+query, res.StatusCode)
-		}
-		responseContent, _ := io.ReadAll(res.Body)
-		actual:= []AppMetadata{}
-		json.Unmarshal(responseContent, &actual)
-
-		expected := expectedResults[i]
-
-		assert.ElementsMatch(t, expected, actual)
+		validateQueryResults(t, endpoint+"?"+query, expectedResults[i])
 	}
+}
+
+func validateQueryResults(t *testing.T, queryURI string, expectedResult []AppMetadata){
+	res,err:=http.Get(queryURI)
+	if err!=nil{
+		t.Fatalf("Something wrong with Query URI %s, Error: %s",queryURI, err)
+	}
+	assert.Equal(t, res.StatusCode, 200)
+	actual:= getAppMetadataSliceFromResponse(res)
+	assert.ElementsMatch(t, expectedResult, actual)
 }
 
 func testGetByTitleVersionAPI(t *testing.T, endpoint string) {
@@ -88,10 +86,7 @@ func testGetByTitleVersionAPI(t *testing.T, endpoint string) {
 		if res.StatusCode!=200{
 			t.Errorf("Failed to get response from %s. Expected status code = 200, actual: %d", query, res.StatusCode)
 		}
-		responseContent, _ := io.ReadAll(res.Body)
-		returnedAppMetadata := AppMetadata{}
-		json.Unmarshal(responseContent, &returnedAppMetadata)
-
+		returnedAppMetadata := getAppMetadataFromResponse(res)
 		expectedAppMetadata := allAppMetadatas[i]
 
 		if !reflect.DeepEqual(expectedAppMetadata, returnedAppMetadata){
@@ -140,6 +135,55 @@ func testPostValidData(t *testing.T, validPayloads []string, endpoint string) {
 	}
 }
 
+func testDeleteAPI(t *testing.T, validPayloads []string, endpoint string) {
+	for _, validPayload := range validPayloads {
+		http.Post(endpoint, "text/plain", strings.NewReader(validPayload))
+	}
+	toDelete:="/Valid App 1/0.0.1/"
+	notToDelete := []string{
+		"/Valid App 1/1.0.1/",
+		"/Valid App 2/1.0.1/",
+		"/Valid App 2/1.0.2/",
+	}
+	request, _:=http.NewRequest(http.MethodDelete, endpoint+toDelete,nil)
+
+	//before delete
+	validateQueryResults(t, endpoint+"?title=Valid+App+1", []AppMetadata{allAppMetadatas[0],allAppMetadatas[1]})
+	res,err:=http.Get(endpoint+toDelete)
+	assert.Equal(t, getAppMetadataFromResponse(res), allAppMetadatas[0])
+
+	//do delete
+	client:=&http.Client{}
+	res,err = client.Do(request)
+	if err!=nil{
+		t.Errorf("Failed to handle Delete request. Error: %s", err)
+	}
+	//verify
+	assert.Equal(t, res.StatusCode, 200)
+	assert.Equal(t, getAppMetadataFromResponse(res),allAppMetadatas[0])
+	res,err=http.Get(endpoint+toDelete)
+	assert.Equal(t, res.StatusCode, 404)
+
+	for _, remains := range notToDelete{
+		res,err=http.Get(endpoint+remains)
+		assert.Equal(t, res.StatusCode, 200)
+	}
+	validateQueryResults(t, endpoint+"?title=Valid+App+1", []AppMetadata{allAppMetadatas[1]})
+}
+
+func getAppMetadataFromResponse(res *http.Response) AppMetadata{
+	responseContent, _ := io.ReadAll(res.Body)
+	appMetadata := AppMetadata{}
+	json.Unmarshal(responseContent, &appMetadata)
+	return appMetadata
+}
+
+func getAppMetadataSliceFromResponse(res *http.Response) []AppMetadata{
+	responseContent, _ := io.ReadAll(res.Body)
+	metadatas:= []AppMetadata{}
+	json.Unmarshal(responseContent, &metadatas)
+	return metadatas
+}
 
 func getPayloadsFromFile(directory string) []string{
 	var payloads []string

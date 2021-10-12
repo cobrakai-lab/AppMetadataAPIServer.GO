@@ -9,6 +9,7 @@ import (
 type SearchEngine interface {
 	IndexMetadata(appMetadata AppMetadata)
 	QueryMetadata(queryParam QueryParameter) []AppMetadataKey
+	Delete(key AppMetadataKey)
 	Init()
 }
 
@@ -45,6 +46,15 @@ func (cobraSearch *CobraSearch) Init(){
 		log.Println("CobraSearch Inverted Index is initialized")
 	}else{
 		log.Println("CobraSearch Inverted index is already initialized.")
+	}
+}
+
+func (cobraSearch *CobraSearch) Delete(key AppMetadataKey){
+	log.Printf("Deleting key %+v from all indexes", key)
+	for _, propertyIndex:=range cobraSearch.invertedIndex{
+		for _, valueIndex:= range propertyIndex{
+			valueIndex.Delete(key)
+		}
 	}
 }
 

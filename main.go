@@ -28,6 +28,7 @@ func initServer() *gin.Engine{
 	router.GET(MetadataEndpoint, queryMetadata)
 	router.POST(MetadataEndpoint, postMetadata)
 	router.GET(MetadataEndpoint+"/:title/:version", getMetadataByTitleVersion)
+	router.DELETE(MetadataEndpoint+"/:title/:version", deleteMetadata)
 	preloadMockData()
 	return router
 }
@@ -81,6 +82,19 @@ func postMetadata(c *gin.Context) {
 	}
 	log.Printf("New metadata created successfully")
 	c.IndentedJSON(http.StatusCreated, newMetadata)
+}
+
+func deleteMetadata(c *gin.Context){
+	defer recovery(c)
+	title := c.Param("title")
+	version := c.Param("version")
+	var key = storage.AppMetadataKey{title, version}
+	deleted, err := cobraDB.Delete(key)
+	if err==nil{
+		c.IndentedJSON(http.StatusOK, deleted)
+	}else{
+		c.IndentedJSON(http.StatusOK, gin.H{"result":"metadata does not exist"})
+	}
 }
 
 func recovery(c *gin.Context){
