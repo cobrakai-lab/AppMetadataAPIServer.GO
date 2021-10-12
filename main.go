@@ -23,7 +23,7 @@ func main() {
 func initServer() *gin.Engine{
 	var cobraSearch storage.SearchEngine = new(storage.CobraSearch)
 	cobraSearch.Init()
-	cobraDB.Init(&cobraSearch)
+	cobraDB.Init(cobraSearch)
 	router := gin.Default()
 	router.GET(MetadataEndpoint, queryMetadata)
 	router.POST(MetadataEndpoint, postMetadata)

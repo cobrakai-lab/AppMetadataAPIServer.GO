@@ -1,7 +1,8 @@
-package storage
+package storage_test
 
 import (
 	. "AppMetadataAPIServerGo/model"
+	. "AppMetadataAPIServerGo/storage"
 	"github.com/go-playground/assert/v2"
 	"testing"
 )
@@ -82,5 +83,4 @@ func getTestInputs() []AppMetadata {
 	}
 
 	return inputs
-
 }

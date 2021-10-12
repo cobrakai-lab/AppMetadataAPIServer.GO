@@ -18,9 +18,9 @@ type CobraDB struct {
 	cobraSearch SearchEngine
 }
 
-func (cobraDb *CobraDB) Init(cobraSearch *SearchEngine){
+func (cobraDb *CobraDB) Init(cobraSearch SearchEngine){
 	cobraDb.dataCore = make(map[AppMetadataKey]AppMetadata)
-	cobraDb.cobraSearch = *cobraSearch
+	cobraDb.cobraSearch = cobraSearch
 	log.Println("CobraDB is initialized.")
 }
 
