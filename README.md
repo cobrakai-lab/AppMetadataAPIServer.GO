@@ -87,3 +87,14 @@ For example, to find all apps' metadata that is maintained by Kai and is of MIT 
 ```zsh
 curl https://appmetadataapi.azurewebsites.net/v1/metadata?maintainerName=kai&license=MIT
 ```
+---
+# To delete an App Metadata:
+Endpoint: `v1/metadata/:title/:version`
+
+Method: `DELETE`
+
+where `:title` and `:version` is the url encoded value of app's title and version. If the metadata exists, this API will return the deleted metadata content in response. If the metadata does not exist, the response will simply state so.
+Exmaple to delete a metadata with title=app1 and verison=1.0:
+```zsh
+curl -X "DELETE" https://appmetadataapi.azurewebsites.net/v1/metadata/app1/1.0
+```
