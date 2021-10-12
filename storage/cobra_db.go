@@ -4,6 +4,7 @@ import (
 	. "AppMetadataAPIServerGo/model"
 	"errors"
 	"log"
+	"sync"
 )
 
 type Database interface{
@@ -16,6 +17,7 @@ type Database interface{
 type CobraDB struct {
 	dataCore    map[AppMetadataKey]AppMetadata
 	cobraSearch SearchEngine
+	mutex sync.Mutex
 }
 
 func (cobraDb *CobraDB) Init(cobraSearch SearchEngine){
@@ -25,6 +27,8 @@ func (cobraDb *CobraDB) Init(cobraSearch SearchEngine){
 }
 
 func (cobraDb *CobraDB) Create(metadata AppMetadata) error{
+	cobraDb.mutex.Lock()
+	defer cobraDb.mutex.Unlock()
 	key:= AppMetadataKey{ metadata.Title, metadata.Version}
 	if _, found := cobraDb.dataCore[key]; found {
 		return errors.New("duplicate record exists")
@@ -33,6 +37,7 @@ func (cobraDb *CobraDB) Create(metadata AppMetadata) error{
 		cobraDb.cobraSearch.IndexMetadata(metadata)
 	}
 	return nil
+
 }
 
 func (cobraDb *CobraDB) GetBulk(keys []AppMetadataKey) []AppMetadata {
