@@ -4,14 +4,14 @@ import (
 	. "AppMetadataAPIServerGo/model"
 	"encoding/json"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 	"io"
-	"reflect"
-
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -68,9 +68,7 @@ func testQueryAPI(t *testing.T, endpoint string) {
 
 		expected := expectedResults[i]
 
-		if !reflect.DeepEqual(expected, actual){
-			t.Errorf("expected metatdata not equal returned metadata. Expected: %+v, returned: %+v", expected, actual)
-		}
+		assert.ElementsMatch(t, expected, actual)
 	}
 }
 

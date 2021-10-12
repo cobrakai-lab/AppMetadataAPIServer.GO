@@ -13,7 +13,8 @@ type SearchEngine interface {
 }
 
 type CobraSearch struct{
-	invertedIndex map[string]map[string][]AppMetadataKey
+	// map from propertyName : propertyValue : set of keys
+	invertedIndex map[string]map[string]AppMetadataKeySet
 }
 
 func (cobraSearch *CobraSearch) IndexMetadata(appMetadata AppMetadata){
@@ -37,9 +38,9 @@ var parameterNames = []string{ "title", "version", "maintainerName", "maintainer
 
 func (cobraSearch *CobraSearch) Init(){
 	if cobraSearch.invertedIndex==nil{
-		cobraSearch.invertedIndex = make(map[string]map[string][]AppMetadataKey)
+		cobraSearch.invertedIndex = make(map[string]map[string]AppMetadataKeySet)
 		for _, parameterName:= range parameterNames{
-			cobraSearch.invertedIndex[parameterName] = make(map[string][]AppMetadataKey)
+			cobraSearch.invertedIndex[parameterName] = make(map[string]AppMetadataKeySet)
 		}
 		log.Println("CobraSearch Inverted Index is initialized")
 	}else{
@@ -52,12 +53,8 @@ func indexProperty(cobraSearch *CobraSearch, appMetadata AppMetadata, propertyNa
 	var propertyIndex = cobraSearch.invertedIndex[propertyName]
 	propertyValue = strings.TrimSpace(propertyValue)
 	var key = AppMetadataKey{appMetadata.Title, appMetadata.Version}
-	_,found := propertyIndex[propertyValue]
-	if found{
-		propertyIndex[propertyValue] = append(propertyIndex[propertyValue], key)
-	}else{
-		propertyIndex[propertyValue] = []AppMetadataKey{key}
-	}
+	current := 	propertyIndex[propertyValue]
+	propertyIndex[propertyValue] = current.Add(key)
 }
 
 func (cobraSearch *CobraSearch) getAppMetadataKeysByQuery(queryParam QueryParameter) []AppMetadataKey{
@@ -74,10 +71,7 @@ func (cobraSearch *CobraSearch) getAppMetadataKeysByQuery(queryParam QueryParame
 func (cobraSearch *CobraSearch) getAppMetadataByProperty(queryParam QueryParameter, propertyName string) []AppMetadataKey{
 	if queriedValue :=  getQueriedValue(queryParam, propertyName); queriedValue !=""{
 		keysQueried := cobraSearch.invertedIndex[propertyName][queriedValue]
-		if keysQueried==nil{
-			keysQueried = []AppMetadataKey{}
-		}
-		return keysQueried
+		return keysQueried.GetAllAppMetadataKeys()
 	}else {
 		return nil
 	}

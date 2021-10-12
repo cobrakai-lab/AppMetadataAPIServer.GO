@@ -3,7 +3,7 @@ package storage_test
 import (
 	. "AppMetadataAPIServerGo/model"
 	. "AppMetadataAPIServerGo/storage"
-	"github.com/go-playground/assert/v2"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -41,7 +41,7 @@ func TestCobraSearch_MultipleMatch(t *testing.T){
 		{testInputs[0].Title, testInputs[0].Version},
 		{testInputs[1].Title, testInputs[1].Version},
 	}
-	assert.Equal(t, actual, expected)
+	assert.ElementsMatch(t, actual, expected)
 
 	actual = cobraSearch.QueryMetadata(QueryParameter{Company: "cobrakai", License: "apache"})
 	expected = 	[]AppMetadataKey{
