@@ -8,12 +8,20 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"time"
 )
 
 const MetadataEndpoint = "v1/metadata"
 const Port = "8888"
 
 var cobraDB = storage.CobraDB{}
+var serverStartTime = time.Now()
+var getMetadataAPICount = 0
+var postMetadataAPICount=0
+var queryMetadataAPICount = 0
+var deleteMetadataAPICount = 0
+var statsViewed = 0
+var uniqueVisitorAddress = map[string]struct{}{}
 
 func main() {
 	log.Println("Starting server")
@@ -31,11 +39,15 @@ func initServer() *gin.Engine{
 	router.POST(MetadataEndpoint, postMetadata)
 	router.GET(MetadataEndpoint+"/:title/:version", getMetadataByTitleVersion)
 	router.DELETE(MetadataEndpoint+"/:title/:version", deleteMetadata)
+	router.GET(MetadataEndpoint+"/_stats", getServerStats)
 	return router
 }
 
 func getMetadataByTitleVersion(c *gin.Context) {
 	defer recovery(c)
+	getMetadataAPICount+=1
+	uniqueVisitorAddress[c.Request.RemoteAddr]= struct{}{}
+
 	title := c.Param("title")
 	version := c.Param("version")
 	var key = storage.AppMetadataKey{title, version}
@@ -49,6 +61,9 @@ func getMetadataByTitleVersion(c *gin.Context) {
 
 func queryMetadata(c *gin.Context) {
 	defer recovery(c)
+	queryMetadataAPICount+=1
+	uniqueVisitorAddress[c.Request.RemoteAddr]= struct{}{}
+
 	parameters:=storage.QueryParameter{
 		Title:           c.Query("title"),
 		Version:         c.Query("version"),
@@ -70,6 +85,9 @@ func queryMetadata(c *gin.Context) {
 
 func postMetadata(c *gin.Context) {
 	defer recovery(c)
+	postMetadataAPICount+=1
+	uniqueVisitorAddress[c.Request.RemoteAddr]= struct{}{}
+
 	var newMetadata AppMetadata
 	if err := c.BindYAML(&newMetadata); err != nil {
 		log.Printf("Something wrong with YAML format: %s", err)
@@ -92,6 +110,9 @@ func postMetadata(c *gin.Context) {
 
 func deleteMetadata(c *gin.Context){
 	defer recovery(c)
+	deleteMetadataAPICount+=1
+	uniqueVisitorAddress[c.Request.RemoteAddr]= struct{}{}
+
 	title := c.Param("title")
 	version := c.Param("version")
 	var key = storage.AppMetadataKey{title, version}
@@ -101,6 +122,22 @@ func deleteMetadata(c *gin.Context){
 	}else{
 		c.IndentedJSON(http.StatusOK, gin.H{"result":"metadata does not exist"})
 	}
+}
+
+func getServerStats(c *gin.Context){
+	defer recovery(c)
+	statsViewed+=1
+	uniqueVisitorAddress[c.Request.RemoteAddr]= struct{}{}
+
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"server_start_time":fmt.Sprintf(serverStartTime.String()),
+		"get_metadata_api_called_counter": getMetadataAPICount,
+		"query_metadata_api_called_counter": queryMetadataAPICount,
+		"post_metadata_api_called_counter": postMetadataAPICount,
+		"delete_metadata_api_called_counter": deleteMetadataAPICount,
+		"stats_viewed": statsViewed,
+		"unique_visitors" : len(uniqueVisitorAddress),
+	})
 }
 
 func recovery(c *gin.Context){
