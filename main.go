@@ -21,7 +21,6 @@ var postMetadataAPICount=0
 var queryMetadataAPICount = 0
 var deleteMetadataAPICount = 0
 var statsViewed = 0
-var uniqueVisitorAddress = map[string]struct{}{}
 
 func main() {
 	log.Println("Starting server")
@@ -46,7 +45,6 @@ func initServer() *gin.Engine{
 func getMetadataByTitleVersion(c *gin.Context) {
 	defer recovery(c)
 	getMetadataAPICount+=1
-	uniqueVisitorAddress[c.Request.RemoteAddr]= struct{}{}
 
 	title := c.Param("title")
 	version := c.Param("version")
@@ -62,7 +60,6 @@ func getMetadataByTitleVersion(c *gin.Context) {
 func queryMetadata(c *gin.Context) {
 	defer recovery(c)
 	queryMetadataAPICount+=1
-	uniqueVisitorAddress[c.Request.RemoteAddr]= struct{}{}
 
 	parameters:=storage.QueryParameter{
 		Title:           c.Query("title"),
@@ -86,7 +83,6 @@ func queryMetadata(c *gin.Context) {
 func postMetadata(c *gin.Context) {
 	defer recovery(c)
 	postMetadataAPICount+=1
-	uniqueVisitorAddress[c.Request.RemoteAddr]= struct{}{}
 
 	var newMetadata AppMetadata
 	if err := c.BindYAML(&newMetadata); err != nil {
@@ -111,7 +107,6 @@ func postMetadata(c *gin.Context) {
 func deleteMetadata(c *gin.Context){
 	defer recovery(c)
 	deleteMetadataAPICount+=1
-	uniqueVisitorAddress[c.Request.RemoteAddr]= struct{}{}
 
 	title := c.Param("title")
 	version := c.Param("version")
@@ -127,7 +122,6 @@ func deleteMetadata(c *gin.Context){
 func getServerStats(c *gin.Context){
 	defer recovery(c)
 	statsViewed+=1
-	uniqueVisitorAddress[c.Request.RemoteAddr]= struct{}{}
 
 	c.IndentedJSON(http.StatusOK, gin.H{
 		"server_start_time":fmt.Sprintf(serverStartTime.String()),
@@ -136,7 +130,6 @@ func getServerStats(c *gin.Context){
 		"post_metadata_api_called_counter": postMetadataAPICount,
 		"delete_metadata_api_called_counter": deleteMetadataAPICount,
 		"stats_viewed": statsViewed,
-		"unique_visitors" : len(uniqueVisitorAddress),
 	})
 }
 
