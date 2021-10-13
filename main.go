@@ -17,7 +17,9 @@ var cobraDB = storage.CobraDB{}
 
 func main() {
 	log.Println("Starting server")
-	initServer().Run("0.0.0.0:" + Port)
+	router:=initServer()
+	preloadMockData()
+	router.Run("0.0.0.0:" + Port)
 }
 
 func initServer() *gin.Engine{
@@ -29,7 +31,6 @@ func initServer() *gin.Engine{
 	router.POST(MetadataEndpoint, postMetadata)
 	router.GET(MetadataEndpoint+"/:title/:version", getMetadataByTitleVersion)
 	router.DELETE(MetadataEndpoint+"/:title/:version", deleteMetadata)
-	preloadMockData()
 	return router
 }
 
@@ -58,8 +59,13 @@ func queryMetadata(c *gin.Context) {
 		Source:          c.Query("source"),
 		License:         c.Query("license"),
 	}
-	result:=cobraDB.Query(parameters)
-	c.IndentedJSON(http.StatusOK, result)
+
+	if len(c.Request.URL.Query())==0{
+		c.IndentedJSON(http.StatusOK, cobraDB.GetAll())
+	}else{
+		result:=cobraDB.Query(parameters)
+		c.IndentedJSON(http.StatusOK, result)
+	}
 }
 
 func postMetadata(c *gin.Context) {
@@ -106,18 +112,59 @@ func recovery(c *gin.Context){
 
 
 func preloadMockData(){
-	mockData := AppMetadata{
-		Title:       "mock app",
-		Version:     "1.0",
-		Maintainers: []Maintainer{
-			{ "kai", "i@g.com"},
+	mockData := []AppMetadata{
+		{
+			Title: "mock app",
+			Version: "1.0",
+			Maintainers: []Maintainer{
+				{"kai", "i@g.com"},
+			},
+			Company:     "Cobrakai",
+			Website:     "www.somewhere.com",
+			Source:      "http://github.com",
+			License:     "MIT",
+			Description: "Looks legit!",
 		},
-		Company:     "Cobrakai",
-		Website:     "www.somewhere.com",
-		Source:      "http://github.com",
-		License:     "MIT",
-		Description: "Looks legit!",
+		{
+			Title: "mock app",
+			Version: "1.1",
+			Maintainers: []Maintainer{
+				{"kai", "i@g.com"},
+			},
+			Company:     "Cobrakai",
+			Website:     "www.somewhere.com",
+			Source:      "http://github.com",
+			License:     "MIT",
+			Description: "Looks legit!",
+		},
+		{
+			Title: "real app",
+			Version: "1.0",
+			Maintainers: []Maintainer{
+				{"kai", "i@g.com"},
+			},
+			Company:     "Cobrakai",
+			Website:     "www.somewhere.com",
+			Source:      "http://github.com",
+			License:     "Apache-2.0",
+			Description: "Looks legit!",
+		},
+		{
+			Title: "real app2",
+			Version: "1.0",
+			Maintainers: []Maintainer{
+				{"kai", "i@g.com"},
+				{"cobra", "a@b.com"},
+			},
+			Company:     "Cobrakai",
+			Website:     "www.somewhere.com",
+			Source:      "http://github.com",
+			License:     "BSD",
+			Description: "Looks legit!",
+		},
 	}
 
-	cobraDB.Create(mockData)
+	for _,metadata:= range(mockData){
+		cobraDB.Create(metadata)
+	}
 }

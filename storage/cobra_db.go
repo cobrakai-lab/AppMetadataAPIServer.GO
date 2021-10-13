@@ -12,6 +12,7 @@ type Database interface{
 	GetBulk(keys []AppMetadataKey) []AppMetadata
 	Query(parameter QueryParameter) []AppMetadata
 	Delete(key AppMetadataKey) (AppMetadata, error)
+	GetAll() []AppMetadata
 	Init()
 }
 
@@ -38,7 +39,6 @@ func (cobraDb *CobraDB) Create(metadata AppMetadata) error{
 		cobraDb.cobraSearch.IndexMetadata(metadata)
 	}
 	return nil
-
 }
 
 func (cobraDb *CobraDB) GetBulk(keys []AppMetadataKey) []AppMetadata {
@@ -64,6 +64,14 @@ func (cobraDb *CobraDB) Delete(key AppMetadataKey) (AppMetadata, error){
 		return metadata, nil
 	}
 	return AppMetadata{}, errors.New("No metadata found")
+}
+
+func (cobraDb *CobraDB) GetAll() []AppMetadata{
+	result := []AppMetadata{}
+	for _, metadata := range cobraDb.dataCore{
+		result = append(result, metadata)
+	}
+	return result
 }
 
 type AppMetadataKey struct {

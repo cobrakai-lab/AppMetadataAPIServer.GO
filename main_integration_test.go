@@ -43,6 +43,7 @@ func testQueryAPI(t *testing.T, endpoint string) {
 		"maintainerName=firstmaintainer+app1&website=https://website2.com",
 		"wrongKey=nothing",
 		"title=Valid+App+1",
+		"",
 	}
 
 	expectedResults := [][]AppMetadata{
@@ -52,7 +53,7 @@ func testQueryAPI(t *testing.T, endpoint string) {
 		{allAppMetadatas[2] },
 		{},
 		{allAppMetadatas[0], allAppMetadatas[1] },
-
+		allAppMetadatas,
 	}
 
 	for i,query :=range queries{
