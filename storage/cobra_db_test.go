@@ -34,14 +34,14 @@ func TestCobraDB(t *testing.T) {
 	mockCobraSearch.AssertExpectations(t)
 
 	//test Query
-	var queryParam = QueryParameter{Title: "app1"}
+	var queryParam = QueryParameter{Title: "app1", Page: 1, PageSize: 20}
 	var mockQueriedKeys = []AppMetadataKey{
 		{inputs[0].Title, inputs[0].Version},
 	}
 	mockCobraSearch.On("QueryMetadata", queryParam).Return(mockQueriedKeys)
 
 	actual = cobraDB.Query(queryParam)
-	assert.Equal(t, actual, []AppMetadata{inputs[0]})
+	assert.Equal(t, []AppMetadata{inputs[0]}, actual)
 	mockCobraSearch.AssertExpectations(t)
 
 	//test delete

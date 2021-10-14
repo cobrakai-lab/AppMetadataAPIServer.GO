@@ -4,6 +4,8 @@ import (
 	. "AppMetadataAPIServerGo/model"
 	"errors"
 	"log"
+	"sort"
+	"strings"
 	"sync"
 )
 
@@ -12,7 +14,6 @@ type Database interface{
 	GetBulk(keys []AppMetadataKey) []AppMetadata
 	Query(parameter QueryParameter) []AppMetadata
 	Delete(key AppMetadataKey) (AppMetadata, error)
-	GetAll() []AppMetadata
 	Init()
 }
 
@@ -53,7 +54,14 @@ func (cobraDb *CobraDB) GetBulk(keys []AppMetadataKey) []AppMetadata {
 
 func (cobraDb *CobraDB) Query(parameter QueryParameter) []AppMetadata{
 	log.Printf("Querying with parameter: %+v", parameter)
-	var keys = cobraDb.cobraSearch.QueryMetadata(parameter)
+	keys := []AppMetadataKey{}
+	if isEmptyQuery(parameter){
+		keys = cobraDb.getAllKeys()
+	}else{
+		keys = cobraDb.cobraSearch.QueryMetadata(parameter)
+	}
+	sorted(keys)
+	keys = getKeysByPage(parameter.Page, parameter.PageSize,keys)
 	return cobraDb.GetBulk(keys)
 }
 
@@ -66,13 +74,50 @@ func (cobraDb *CobraDB) Delete(key AppMetadataKey) (AppMetadata, error){
 	return AppMetadata{}, errors.New("No metadata found")
 }
 
-func (cobraDb *CobraDB) GetAll() []AppMetadata{
-	result := []AppMetadata{}
-	for _, metadata := range cobraDb.dataCore{
-		result = append(result, metadata)
+func (cobraDb *CobraDB) getAllKeys() []AppMetadataKey{
+	keys := []AppMetadataKey{}
+	for key, _ := range cobraDb.dataCore{
+		keys = append(keys, key)
 	}
-	return result
+	return keys
 }
+
+func isEmptyQuery(parameter QueryParameter) bool {
+	return strings.TrimSpace(
+		parameter.Title+
+		parameter.Version+
+		parameter.MaintainerEmail+
+		parameter.MaintainerName+
+		parameter.Website+
+		parameter.Company+
+		parameter.Source+
+		parameter.License) == ""
+}
+
+func getKeysByPage(pageNumber int, pageSize int, keys []AppMetadataKey) []AppMetadataKey{
+	startIndex := (pageNumber-1)*pageSize
+	if startIndex>=len(keys){
+		return []AppMetadataKey{}
+	}
+	exclusiveEndIndex := startIndex+pageSize
+	if exclusiveEndIndex>len(keys){
+		exclusiveEndIndex = len(keys)
+	}
+	return keys[startIndex: exclusiveEndIndex]
+}
+
+func sorted(keys []AppMetadataKey){
+	sort.SliceStable(keys, func(i, j int) bool {
+		if keys[i].Title < keys[j].Title{
+			return true
+		}
+		if keys[i].Title>keys[j].Title{
+			return false
+		}
+		return keys[i].Version< keys[j].Version
+	})
+}
+
 
 type AppMetadataKey struct {
 	Title   string

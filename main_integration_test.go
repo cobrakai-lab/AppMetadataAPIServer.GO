@@ -38,12 +38,16 @@ func TestIntegration(t *testing.T){
 func testQueryAPI(t *testing.T, endpoint string) {
 	queries:= []string{
 		"license=Apache-2.0",
-		"title=mit",
-		"version=1.0.1",
+		"title=mit&page=0",
+		"version=1.0.1&pageSize=abc",
 		"maintainerName=firstmaintainer+app1&website=https://website2.com",
 		"wrongKey=nothing",
-		"title=Valid+App+1",
+		"title=Valid+App+1&page=xyz",
 		"",
+		"pageSize=3&page=2",
+		"pageSize=2",
+		"license=Apache-2.0&pageSize=2&page=2",
+		"pageSize=0",
 	}
 
 	expectedResults := [][]AppMetadata{
@@ -54,6 +58,10 @@ func testQueryAPI(t *testing.T, endpoint string) {
 		{},
 		{allAppMetadatas[0], allAppMetadatas[1] },
 		allAppMetadatas,
+		{allAppMetadatas[3]},
+		{allAppMetadatas[0], allAppMetadatas[1]},
+		{allAppMetadatas[2], allAppMetadatas[3]},
+		{},
 	}
 
 	for i,query :=range queries{

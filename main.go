@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -60,7 +62,15 @@ func getMetadataByTitleVersion(c *gin.Context) {
 func queryMetadata(c *gin.Context) {
 	defer recovery(c)
 	queryMetadataAPICount+=1
-
+	const DefaultPageSize = 20
+	pageNumber,err := strconv.Atoi(c.Query("page"))
+	if err!=nil || pageNumber<1{
+		pageNumber=1
+	}
+	pageSize, err := strconv.Atoi(c.Query("pageSize"))
+	if err!=nil  || pageSize<0{
+		pageSize = DefaultPageSize
+	}
 	parameters:=storage.QueryParameter{
 		Title:           c.Query("title"),
 		Version:         c.Query("version"),
@@ -70,15 +80,35 @@ func queryMetadata(c *gin.Context) {
 		Website:         c.Query("website"),
 		Source:          c.Query("source"),
 		License:         c.Query("license"),
+		Page: 			 pageNumber,
+		PageSize: 		 pageSize,
 	}
 
-	if len(c.Request.URL.Query())==0{
-		c.IndentedJSON(http.StatusOK, cobraDB.GetAll())
-	}else{
-		result:=cobraDB.Query(parameters)
-		c.IndentedJSON(http.StatusOK, result)
+	if hasUnrecognizedQuery(c.Request.URL.Query()){
+		c.IndentedJSON(http.StatusOK, []AppMetadata{})
+		return
 	}
+	result:=cobraDB.Query(parameters)
+	c.IndentedJSON(http.StatusOK, result)
 }
+
+func hasUnrecognizedQuery(query url.Values) bool {
+	recognizedQueryCount := 0
+	for _, parameterName := range storage.ParameterNames{
+		if _,found:= query[parameterName];found{
+			recognizedQueryCount++
+		}
+	}
+	if _, found:=query["page"];found{
+		recognizedQueryCount++
+	}
+	if _, found:=query["pageSize"];found{
+		recognizedQueryCount++
+	}
+	log.Printf("recognized query count: %d, actual: %d", recognizedQueryCount, len(query))
+	return len(query) != recognizedQueryCount
+}
+
 
 func postMetadata(c *gin.Context) {
 	defer recovery(c)

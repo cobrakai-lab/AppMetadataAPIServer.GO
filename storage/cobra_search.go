@@ -35,12 +35,10 @@ func (cobraSearch *CobraSearch) QueryMetadata(queryParam QueryParameter) []AppMe
 	return cobraSearch.getAppMetadataKeysByQuery(queryParam)
 }
 
-var parameterNames = []string{ "title", "version", "maintainerName", "maintainerEmail","company", "website", "source", "license"}
-
 func (cobraSearch *CobraSearch) Init(){
 	if cobraSearch.invertedIndex==nil{
 		cobraSearch.invertedIndex = make(map[string]map[string]AppMetadataKeySet)
-		for _, parameterName:= range parameterNames{
+		for _, parameterName:= range ParameterNames {
 			cobraSearch.invertedIndex[parameterName] = make(map[string]AppMetadataKeySet)
 		}
 		log.Println("CobraSearch Inverted Index is initialized")
@@ -69,7 +67,7 @@ func indexProperty(cobraSearch *CobraSearch, appMetadata AppMetadata, propertyNa
 
 func (cobraSearch *CobraSearch) getAppMetadataKeysByQuery(queryParam QueryParameter) []AppMetadataKey{
 	keysQueriedFromParameters := [][]AppMetadataKey{}
-	for _,parameterName := range parameterNames{
+	for _,parameterName := range ParameterNames {
 		queriedKeys := cobraSearch.getAppMetadataByProperty(queryParam, parameterName)
 		if queriedKeys !=nil{
 			keysQueriedFromParameters = append(keysQueriedFromParameters, queriedKeys)
